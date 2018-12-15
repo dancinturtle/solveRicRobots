@@ -1,0 +1,11 @@
+/Users/dancinturtle/Desktop/codingStuff/robots/RicRobots/bin/Debug/netcoreapp2.1/RicRobots.deps.json
+/Users/dancinturtle/Desktop/codingStuff/robots/RicRobots/bin/Debug/netcoreapp2.1/RicRobots.runtimeconfig.json
+/Users/dancinturtle/Desktop/codingStuff/robots/RicRobots/bin/Debug/netcoreapp2.1/RicRobots.runtimeconfig.dev.json
+/Users/dancinturtle/Desktop/codingStuff/robots/RicRobots/bin/Debug/netcoreapp2.1/RicRobots.dll
+/Users/dancinturtle/Desktop/codingStuff/robots/RicRobots/bin/Debug/netcoreapp2.1/RicRobots.pdb
+/Users/dancinturtle/Desktop/codingStuff/robots/RicRobots/obj/Debug/netcoreapp2.1/RicRobots.csprojAssemblyReference.cache
+/Users/dancinturtle/Desktop/codingStuff/robots/RicRobots/obj/Debug/netcoreapp2.1/RicRobots.csproj.CoreCompileInputs.cache
+/Users/dancinturtle/Desktop/codingStuff/robots/RicRobots/obj/Debug/netcoreapp2.1/RicRobots.AssemblyInfoInputs.cache
+/Users/dancinturtle/Desktop/codingStuff/robots/RicRobots/obj/Debug/netcoreapp2.1/RicRobots.AssemblyInfo.cs
+/Users/dancinturtle/Desktop/codingStuff/robots/RicRobots/obj/Debug/netcoreapp2.1/RicRobots.dll
+/Users/dancinturtle/Desktop/codingStuff/robots/RicRobots/obj/Debug/netcoreapp2.1/RicRobots.pdb
