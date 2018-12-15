@@ -45,6 +45,11 @@ namespace RicRobots
            this.placeRobots();
            this.makeMap();
        }
+
+    //    public void play(string color, int[] destination)
+    //    {
+
+    //    }
        
        public List<int[]> secondaryDestinations(int[] destination)
        {
@@ -77,43 +82,83 @@ namespace RicRobots
            }
            return result;
        }
-       public MinHeap helperRobots(int[] origin, List<int[]> helperDestinations)
+       public MinHeap helperRobots(string color, List<int[]> helperDestinations)
        {
            MinHeap heap = new MinHeap();
-           Node originRobot = this.matrix[origin[0], origin[1]];
+           int[] robotLocation = this.robots[color];
+           Node originRobot = this.matrix[robotLocation[0], robotLocation[1]];
            if(originRobot.Occupied == false || originRobot.Color == "no robot")
            {
                throw new System.ArgumentException("Origin node must be occupied by a robot", "origin");
            }
-           string originColor = originRobot.Color;
            foreach (var kvp in this.robots)  // { red: [13, 5], "blue" [5,5]}
            {
-               if(kvp.Key != originColor)
+               if(kvp.Key != color)
                {
                 foreach(var hDestination in helperDestinations)
                 {
                     Node hDestNode = this.matrix[hDestination[0], hDestination[1]];
-                    Dictionary<Node, Object[]> tracker = this.oneRobotPath(kvp.Value, hDestination);
+                    Dictionary<Node, Object[]> tracker = this.oneRobotPath(kvp.Key, hDestination);
                     if(tracker.ContainsKey(hDestNode))
                     {
-                        heap.insertToMinHeap((int)tracker[hDestNode][0], kvp.Value, hDestination);
+                        heap.insert((int)tracker[hDestNode][0], kvp.Key, hDestination);
                     }
                 }
                }
            }
            return heap;
        }
-       public MinHeap twoRobots(int[] origin, int[] destination)
+       public Dictionary<Node, Object[]> twoRobots(string color, int[] destination)
        {
+           Node destinationNode = this.matrix[destination[0], destination[1]];
            List<int[]> sd = this.secondaryDestinations(destination);
-           MinHeap heap = this.helperRobots(origin, sd);
+           MinHeap heap = this.helperRobots(color, sd);
            heap.printMyHeaps();
-           return heap;
+           string helperColor = "";
+           int[] helperDestination = null;
+           int helperStepCount = 100000;
+           Dictionary<Node, Object[]> best = new Dictionary<Node, Object[]>();
+           int shortestPath = 10000;
+           while(heap.Count > 0)
+           {
+               RobotPriority helper = heap.remove();
+               int helperSteps = helper.Steps;
+               Dictionary<string, int[]> movedRobots = new Dictionary<string, int[]>();
+               foreach (var kvp in this.robots)
+               {
+                   if(kvp.Key == helper.Color)
+                   {
+                       movedRobots[kvp.Key] = new int[] {helper.Destination[0], helper.Destination[1]};
+                   }
+                   else 
+                   {
+                       movedRobots[kvp.Key] = new int[] {kvp.Value[0], kvp.Value[1]};
+                   }
+               }
+               Board newboard = new Board(this.x, this.y, this.walls, movedRobots);
+               Node newDN = newboard.Matrix[destination[0], destination[1]];
+               Dictionary<Node, Object[]> helpedPath = newboard.oneRobotPath(color, destination);
+               if(helpedPath.ContainsKey(newDN))
+               {
+                   int mainRobotSteps = (int) helpedPath[newDN][0];
+                   if(mainRobotSteps + helperSteps < shortestPath)
+                   {
+                       best = helpedPath;
+                       shortestPath = mainRobotSteps + helperSteps;
+                       helperColor = helper.Color;
+                       helperDestination = helper.Destination;
+                       helperStepCount = helperSteps;
+                   }
+               }
+           }
+           Console.WriteLine($"helped by {helperColor} to {helperDestination[0]}-{helperDestination[1]} in {helperStepCount}, the shortest path is {shortestPath}.");
+           return best;
        }
        // tracker is {destination node: [int steps, previous node]}
-       public Dictionary<Node, Object[]> oneRobotPath(int[] origin, int[] destination)
+       public Dictionary<Node, Object[]> oneRobotPath(string color, int[] destination)
        {
-           Node originRobot = this.matrix[origin[0], origin[1]];
+           int[] robotLocation = this.robots[color];
+           Node originRobot = this.matrix[robotLocation[0], robotLocation[1]];
            Node destinationNode = this.matrix[destination[0], destination[1]];
            if(originRobot.Occupied == false || originRobot.Color == "no robot")
            {
@@ -171,7 +216,7 @@ namespace RicRobots
                        tracker.Add(nextStop, new Object[]{steps, current.Val});
                        if(nextStop == destinationNode)
                        {
-                           Console.WriteLine("found the destination");
+                           Console.WriteLine($"found the path for {color} robot to {destinationNode.Name}");
                            return tracker;
                        }
                        queue.insert(nextStop);

@@ -10,17 +10,20 @@ namespace RicRobots
         {
             get => data;
         }
+        public int Count
+        {
+            get => data.Count;
+        }
         public MinHeap()
         {
             this.data = new List<RobotPriority>();
         }
-        public void insertToMinHeap(int steps, int[] origin, int[] destination)
+        public void insert(int steps, string color, int[] destination)
         {
-            RobotPriority newPri = new RobotPriority(steps, origin, destination);
+            RobotPriority newPri = new RobotPriority(steps, color, destination);
             this.data.Add(newPri);
             int c = this.data.Count - 1;
             int p = 0;
-
             if (c % 2 == 0)
             {
                 p = (c - 2) / 2;
@@ -32,7 +35,7 @@ namespace RicRobots
 
             while (p >= 0 && this.data[c].Steps < this.data[p].Steps)
             {
-                swapper(c, p);
+                this.swapper(c, p);
                 c = p;
                 if (c % 2 == 0)
                 {
@@ -45,8 +48,9 @@ namespace RicRobots
             }
 
         }
-        public RobotPriority removeFromTheHeap(){
-            if(this.data.Count <= 0){
+        public RobotPriority remove()
+        {
+            if(this.data.Count == 0){
                 return null;
             }
             RobotPriority obj = this.data[0];
@@ -57,8 +61,8 @@ namespace RicRobots
                 return obj;
             }
             int pIdx = 0;
-            int c1 = (pIdx * 2) + 1;
-            int c2 = (pIdx * 2) + 2;
+            int c1 = 1;
+            int c2 = 2;
 
             RobotPriority pVal = this.data[0];
             while(c1 < this.data.Count){
@@ -96,9 +100,10 @@ namespace RicRobots
              return obj;
            
         }
-        public void printMyHeaps(){
+        public void printMyHeaps()
+        {
             foreach(var obj in this.data){
-                Console.WriteLine("Origin: " + obj.Origin[0] + " " + obj.Origin[1] + " Destination: " + obj.Destination[0] + " " + obj.Destination[1] + " Steps: " + obj.Steps);
+                Console.WriteLine("Robot color: " + obj.Color + " Destination: " + obj.Destination[0] + " " + obj.Destination[1] + " Steps: " + obj.Steps);
             }
         }
 

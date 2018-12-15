@@ -9,10 +9,10 @@ namespace RicRobots
         {
             int[] dimensions = {16, 16};
             Dictionary<string, int[]> robots = new Dictionary<string, int[]> {
-                {"green", new int[] {11, 2} },
-                {"red", new int[] {1, 11} },
-                {"blue", new int[] {3, 10} },
-                {"yellow", new int[] {10, 14} }
+                {"green", new int[] {15, 6} },
+                {"red", new int[] {11, 6} },
+                {"blue", new int[] {10, 10} },
+                {"yellow", new int[] {11, 13} }
             };
             Dictionary<int[], string[]> walls = new Dictionary<int[], string[]> {
                 { new int[] {0,4}, new string[] {"right"} },
@@ -50,43 +50,35 @@ namespace RicRobots
                 { new int[] {15,11}, new string[] {"right"} }
             };
             Board board = new Board(dimensions[0], dimensions[1], walls, robots);
-            MinHeap heap = board.twoRobots(new int[] {10, 14}, new int[] {2, 14});
-            // Console.WriteLine("heap's count " + heap/.Data.Count);
-            while(heap.Data.Count > 0)
-            {
-                // Console.WriteLine("line 57 length " + heap.Data.Count);
-                RobotPriority top = heap.removeFromTheHeap();
-                Console.WriteLine(top.Steps);
-            }
-            // Console.WriteLine("heap's count " + heap.Data.Count);
-            
+            // MinHeap heap = board.twoRobots("yellow", new int[]{15,13});
+            board.twoRobots("yellow", new int[] {9, 1});
 
-
-
-            // List<int[]> secondaryD = board.secondaryDestinations(new int[] {14, 2});
-            // foreach(int[] destination in secondaryD)
-            // {
-            //     Console.WriteLine(destination[0] + " " + destination[1]);
-            // }
-
-            // Node testNode = board.Matrix[7, 9];
-            // Dictionary<Node, Object[]> tracker = board.oneRobotPath(new int[] {14, 9}, new int[]{4, 6});
-            // printTracker(tracker);
-            // printAdjMap(board);
-            // Node testNode = board.Matrix[1,9];
-            // Console.WriteLine(testNode.Name + ", " + testNode.Row + ", " + testNode.Column + ", " + testNode.Up.Name + ", " + testNode.Right.Name);
-            // Type t = testNode.GetType();
-            // Console.Write("type t " + t);
-            // PropertyInfo[] props = t.GetProperties();
-            // foreach(var prop in props)
-            // {
-            //     Console.WriteLine("prop " + prop + " " + prop.GetValue(testNode));
-            // }
-            // printBoard(board);
         }
-        static string printTracker(Dictionary<Node, Object[]> tracker)
+        static string printTracker(Dictionary<Node, Object[]> tracker, Board board, int[] destination)
         {
+            Node destinationNode = board.Matrix[destination[0], destination[1]];
             string result = "";
+            if(tracker.ContainsKey(destinationNode))
+            {
+                int stepsRequired = (int) tracker[destinationNode][0];
+                result +=$"Destination {destinationNode.Name} found in {stepsRequired} steps. \n";
+                
+                string[] pathNodes = new string[stepsRequired + 1];
+                for(int i=stepsRequired; i>=0; i--)
+                {   
+                    pathNodes[i] = destinationNode.Name;
+                    Node viaNode = (Node) tracker[destinationNode][1];
+                    destinationNode = viaNode;
+                }
+                foreach (string viaNodeName in pathNodes)
+                {
+                    result += $"{viaNodeName} -> ";
+                }
+                result += "end \n";
+                Console.WriteLine(result);
+                return result;
+            }
+            result += $"Destination {destinationNode.Name} could not be reached. \n";
             foreach(var kvp in tracker)
             {
                 result += kvp.Key.Name + " : ";

@@ -10,20 +10,20 @@ namespace RicRobots {
             get => steps;
             set => steps = value;
         }
-        private int[] origin;
-        public int[] Origin
+        private string color;
+        public string Color
         {
-            get => origin;
+            get => color;
         }
         int[] destination {get; set;}
         public int[] Destination
         {
             get => destination;
         }
-        public RobotPriority(int steps, int[] origin, int[] destination)
+        public RobotPriority(int steps, string color, int[] destination)
         {
             this.steps = steps;
-            this.origin = origin;
+            this.color = color;
             this.destination = destination;
         }
 
