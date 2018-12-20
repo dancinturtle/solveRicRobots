@@ -50,15 +50,17 @@ namespace RicRobots
         {
             Node targetRobot = this.matrix[this.robots[color][0], this.robots[color][1]];
             Node destinationNode = this.matrix[destination[0], destination[1]];
-            Dictionary<Node, Object[]> solo = this.oneRobotPath(color, destination);
             int maxSteps = int.MaxValue;
+            Answer bestAnswer = null;
+            Answer solo = this.oneRobotPath(color, destination);
             Dictionary<Node, Object[]> targetTracker = null;
-            if (solo.ContainsKey(destinationNode))
+            if (solo != null)
             {
-                maxSteps = (int)solo[destinationNode][0];
+                bestAnswer = solo;
+                maxSteps = solo.TotalSteps;
                 Console.WriteLine($"solo in {maxSteps} steps.");
-                Program.printTracker(solo, this, destinationNode);
-                targetTracker = solo;
+                Program.printTracker(solo.Trackers.Peek(), this, destinationNode);
+                targetTracker = solo.Trackers.Peek();
             }
             else
             {
@@ -66,27 +68,40 @@ namespace RicRobots
             }
             Answer nudgeRobots = nudgeRobotsOneMovement(color, destination, maxSteps);
             if (nudgeRobots != null){
-                Console.WriteLine("got an answer by nudging");
-                Console.WriteLine(nudgeRobots.HelperColor + " " + nudgeRobots.HelperDestination.Name);
+                if(nudgeRobots.TotalSteps < maxSteps)
+                {
+                    maxSteps = nudgeRobots.TotalSteps;
+                    bestAnswer = nudgeRobots;
+                }
             }
             else
             {
                 Console.WriteLine("no answer by nudging");
             }
-            Answer twoRobotPlay = this.twoRobots(color, destination, maxSteps);
-            if (twoRobotPlay == null)
+            // Answer twoRobotPlay = this.twoRobots(color, destination, maxSteps);
+            Answer twoRobotAnswer = this.twoRobots(color, destination, maxSteps);
+            if(twoRobotAnswer != null)
             {
-                if (maxSteps < int.MaxValue)
+                if(twoRobotAnswer.TotalSteps < maxSteps)
                 {
-                    Console.WriteLine("doing it solo");
-                    Answer soloAnswer = new Answer(null, null, null, color, targetRobot, destinationNode, null, solo, maxSteps, 0, this, maxSteps);
-                    return soloAnswer;
+                    maxSteps = twoRobotAnswer.TotalSteps;
+                    bestAnswer = twoRobotAnswer;
                 }
-                Console.WriteLine("unsolvable");
-                return null;
-
             }
-            return twoRobotPlay;
+            return bestAnswer;
+            // if (twoRobotPlay == null)
+            // {
+            //     if (maxSteps < int.MaxValue)
+            //     {
+            //         Console.WriteLine("doing it solo");
+            //         // Answer soloAnswer = new Answer(null, null, null, color, targetRobot, destinationNode, null, solo, maxSteps, 0, this, maxSteps);
+            //         // return soloAnswer;
+            //     }
+            //     Console.WriteLine("unsolvable");
+            //     return null;
+
+            // }
+            // return twoRobotPlay;
         }
         public Answer nudgeRobotsOneMovement(string color, int[] destination, int maxSteps)
         {
@@ -104,6 +119,7 @@ namespace RicRobots
                     {
                         if(neighbors[direction] != null)
                         {
+                            Node targetNeighbor = this.matrix[neighbors[direction].Row,neighbors[direction].Column];
                             Dictionary<string, int[]> adjustedRobots = new Dictionary<string, int[]>();
                             foreach(var robotkvp in this.robots)
                             {
@@ -116,16 +132,26 @@ namespace RicRobots
                                     adjustedRobots[robotkvp.Key] = new int[] {robotkvp.Value[0], robotkvp.Value[1]};
                                 }
                             }
+                            // here we created a new board with the helper robot nudged and seeing if our target robot can get there in fewer steps than our base case.
                             Board newboard = new Board(this.x, this.y, this.walls, adjustedRobots);
                             Node newDestinationNode = newboard.Matrix[destination[0], destination[1]];
-                            Dictionary<Node, Object[]> nudgedPath = newboard.oneRobotPath(color, destination, maxSteps);
-                            if(nudgedPath.ContainsKey(newDestinationNode))
+                            Answer nudgedPath = newboard.oneRobotPath(color, destination, maxSteps);
+                            if(nudgedPath != null)
                             {
                                 Console.WriteLine($"nudged path found by nudging {kvp.Key} robot to {neighbors[direction].Name}");
-                                if((int) nudgedPath[newDestinationNode][0] < maxSteps)
+                                if(nudgedPath.TotalSteps < maxSteps)
                                 {
-                                    maxSteps = (int) nudgedPath[newDestinationNode][0];
-                                        Console.WriteLine($"And it's a shorter path too! {maxSteps} steps!");
+                                    // here the nudged robot helps find a path that is shorter than our base case.
+                                    maxSteps = nudgedPath.TotalSteps + 1;
+                                    Console.WriteLine($"And it's a shorter path too! {maxSteps} steps!");
+                                    // to make an answer, we need to produce a tracker for our nudged robot.
+                                    Dictionary<Node, Object[]> nudgedRobotTracker = new Dictionary<Node, Object[]>();
+                                    nudgedRobotTracker[helperNode] = new Object[] { 0, null};
+                                    nudgedRobotTracker[targetNeighbor] = new Object[] {1, helperNode};
+                                    // now we can start making an answer
+                                    Answer nudgeAnswer = new Answer(kvp.Key, 1, new int[] {targetNeighbor.Row, targetNeighbor.Column}, nudgedRobotTracker);
+                                    nudgeAnswer.addRobot(color, maxSteps-1, destination, nudgedPath.Trackers.Peek());
+                                    bestAnswer = nudgeAnswer;
                                 }
                             } 
                         }
@@ -133,39 +159,6 @@ namespace RicRobots
                 }
             }
             return bestAnswer;
-        }
-      
-        public Answer nudge(Node node, string nudgeColor, string targetColor, int[] destination, int maxSteps)
-        {
-            Dictionary<string, int[]> nudgedRobot = new Dictionary<string, int[]>();
-            foreach (var kvp in this.robots)
-            {
-                if (kvp.Key == nudgeColor)
-                    {
-                        nudgedRobot[kvp.Key] = new int[] { node.Row, node.Column };
-                    }
-                    else
-                    {
-                        nudgedRobot[kvp.Key] = new int[] { kvp.Value[0], kvp.Value[1] 
-                    };
-                }
-            }
-            Board newboard = new Board(this.x, this.y, this.walls, nudgedRobot);
-            Node newBoardDestination = newboard.Matrix[destination[0], destination[1]];
-            Dictionary<Node, Object[]> nudgedPath = newboard.oneRobotPath(targetColor, destination, maxSteps);
-            if(nudgedPath.ContainsKey(newBoardDestination) && (int) nudgedPath[newBoardDestination][0] < maxSteps-1)
-            {
-                int totalSteps = (int) nudgedPath[newBoardDestination][0] + 1;
-                Dictionary<Node, Object[]> helperPath = new Dictionary<Node, Object[]>();
-                Node helperNode = this.matrix[this.robots[nudgeColor][0], this.robots[nudgeColor][1]];
-                Node targetRobot = this.matrix[this.robots[targetColor][0], this.robots[targetColor][1]];
-                helperPath.Add(helperNode, new Object[] { 0, null });
-                helperPath.Add(node, new Object[] { 1, helperNode });
-
-                Answer nudgeAnswer = new Answer(nudgeColor, helperNode, node, targetColor, targetRobot, this.matrix[destination[0], destination[1]], helperPath, nudgedPath, totalSteps, 1, newboard, totalSteps - 1);
-                return nudgeAnswer;
-            }
-            return null;
         }
 
         public List<int[]> secondaryDestinations(int[] destination)
@@ -215,10 +208,10 @@ namespace RicRobots
                     foreach (var hDestination in helperDestinations)
                     {
                         Node hDestNode = this.matrix[hDestination[0], hDestination[1]];
-                        Dictionary<Node, Object[]> tracker = this.oneRobotPath(kvp.Key, hDestination, maxSteps);
-                        if (tracker.ContainsKey(hDestNode))
+                        Answer tracker = this.oneRobotPath(kvp.Key, hDestination, maxSteps);
+                        if (tracker != null)
                         {
-                            heap.insert((int)tracker[hDestNode][0], kvp.Key, hDestination, tracker);
+                            heap.insert(tracker.TotalSteps, kvp.Key, hDestination, tracker.Trackers.Peek());
                         }
                     }
                 }
@@ -231,22 +224,23 @@ namespace RicRobots
             List<int[]> sd = this.secondaryDestinations(destination);
             MinHeap heap = this.helperRobots(color, sd, maxSteps);
             // heap.printMyHeaps();
-            RobotPriority bestHelper = null;
+            Answer twoRobotAnswer = null;
             Board secondaryBoard = this;
             Node secondaryDestination = destinationNode;
-            string helperColor = "";
-            int[] helperDestination = null;
-            int helperStepCount = int.MaxValue;
+            
             Dictionary<Node, Object[]> bestTargetRobotPath = new Dictionary<Node, Object[]>();
             while (heap.Count > 0)
             {
+                // pull off the heap to find a robot's path to a secondary destination
                 RobotPriority helper = heap.remove();
                 int helperSteps = helper.Steps;
+                // heap is useless once we find steps greater than our max
                 if (helper.Steps >= maxSteps - 1)
                 {
                     break;
                 }
                 Dictionary<string, int[]> movedRobots = new Dictionary<string, int[]>();
+                // move the helper robot to its spot
                 foreach (var kvp in this.robots)
                 {
                     if (kvp.Key == helper.Color)
@@ -258,40 +252,35 @@ namespace RicRobots
                         movedRobots[kvp.Key] = new int[] { kvp.Value[0], kvp.Value[1] };
                     }
                 }
+                // create the new board and try moving the target robot to its spot
                 Board newboard = new Board(this.x, this.y, this.walls, movedRobots);
                 Node newDN = newboard.Matrix[destination[0], destination[1]];
-                Dictionary<Node, Object[]> helpedPath = newboard.oneRobotPath(color, destination);
-                if (helpedPath.ContainsKey(newDN))
+                Answer helpedPath = newboard.oneRobotPath(color, destination, maxSteps);
+                if (helpedPath != null)
                 {
-                    int mainRobotSteps = (int)helpedPath[newDN][0];
+                    int mainRobotSteps = helpedPath.TotalSteps;
                     if (mainRobotSteps + helperSteps < maxSteps)
                     {
-                        bestHelper = helper;
-                        bestTargetRobotPath = helpedPath;
                         maxSteps = mainRobotSteps + helperSteps;
-                        helperColor = helper.Color;
-                        helperDestination = helper.Destination;
-                        helperStepCount = helperSteps;
-                        secondaryBoard = newboard;
-                        secondaryDestination = newDN;
+                        twoRobotAnswer = new Answer(helper.Color, helper.Steps, helper.Destination, helper.RobotPath);
+                        twoRobotAnswer.addRobot(color, helpedPath.TotalSteps, destination, helpedPath.Trackers.Peek());
                     }
                 }
             }
-            if (bestHelper == null)
+            if (twoRobotAnswer == null)
             {
+                Console.WriteLine("null on 259");
                 return null;
             }
 
-            Console.WriteLine($"Line 136, helped by {helperColor} to {helperDestination[0]}-{helperDestination[1]} in {helperStepCount}, the shortest path is {maxSteps}.");
-            Node helperRobot = this.matrix[this.robots[helperColor][0], this.robots[helperColor][1]];
-            Node helperDestinationNode = this.matrix[helperDestination[0], helperDestination[1]];
-            Node targetRobot = this.matrix[this.robots[color][0], this.robots[color][1]];
-            Answer answer = new Answer(helperColor, helperRobot, helperDestinationNode, color, targetRobot, secondaryDestination, bestHelper.Path, bestTargetRobotPath, maxSteps, helperStepCount, secondaryBoard, maxSteps - helperStepCount);
-            return answer;
+            // Console.WriteLine($"Line 136, helped by {helperColor} to {helperDestination[0]}-{helperDestination[1]} in {helperStepCount}, the shortest path is {maxSteps}.");
+            return twoRobotAnswer;
+            // Answer answer = new Answer(helperColor, helperRobot, helperDestinationNode, color, targetRobot, secondaryDestination, bestHelper.Path, bestTargetRobotPath, maxSteps, helperStepCount, secondaryBoard, maxSteps - helperStepCount);
+            // return answer;
         }
 
         // tracker is {destination node: [int steps, previous node]}
-        public Dictionary<Node, Object[]> oneRobotPath(string color, int[] destination, int maxSteps = -1)
+        public Answer oneRobotPath(string color, int[] destination, int maxSteps = -1)
         {
             int[] robotLocation = this.robots[color];
             Node originRobot = this.matrix[robotLocation[0], robotLocation[1]];
@@ -356,16 +345,16 @@ namespace RicRobots
                         tracker.Add(nextStop, new Object[] { steps, current.Val });
                         if (nextStop == destinationNode)
                         {
+                            Answer oneRobotAnswer = new Answer(color, steps, destination, tracker);
                             //    Console.WriteLine($"found the path for {color} robot to {destinationNode.Name}");
-                            return tracker;
+                            return oneRobotAnswer;
                         }
                         queue.insert(nextStop);
                     }
                 }
             }
             //    Console.WriteLine("unreachable");
-            return tracker;
-
+            return null;
         }
         private void placeRobots()
         {

@@ -51,16 +51,31 @@ namespace RicRobots
             };
             Board board = new Board(dimensions[0], dimensions[1], walls, robots);
             // MinHeap heap = board.twoRobots("yellow", new int[]{15,13});
-            Answer answer = board.play("red", new int[] {10, 8});
+            // Answer answer = board.play("red", new int[] {10, 8});
+            Answer answer = board.play("green", new int[] {11, 13});
             if(answer != null)
             {
-                if(answer.Helper != null){
-
-            printTracker(answer.HelperPath, board, answer.HelperDestination);
+                Console.WriteLine("Got an answer " + answer.TotalSteps);
+                while(answer.RobotColors.Count > 0)
+                {
+                    Console.WriteLine("Move robot " + answer.RobotColors.Dequeue());
+                    int[] destination = answer.RobotDestinations.Dequeue();
+                    printTracker(answer.Trackers.Dequeue(), board, board.Matrix[destination[0], destination[1]]);
                 }
-
-            printTracker(answer.TargetRobotPath, answer.SecondBoard, answer.Destination);
             }
+            else 
+            {
+                Console.WriteLine("Hahahahah");
+            }
+            // if(answer != null)
+            // {
+            //     if(answer.Helper != null){
+
+            // printTracker(answer.HelperPath, board, answer.HelperDestination);
+            //     }
+
+            // printTracker(answer.TargetRobotPath, answer.SecondBoard, answer.Destination);
+            // }
 
         }
         public static string printTracker(Dictionary<Node, Object[]> tracker, Board board, Node destinationNode)

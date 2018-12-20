@@ -10,10 +10,10 @@ namespace RicRobots {
             get => steps;
             set => steps = value;
         }
-        private Dictionary<Node, Object[]> path;
-        public Dictionary<Node, Object[]> Path
+        private Dictionary<Node, Object[]> robotPath;
+        public Dictionary<Node, Object[]> RobotPath
         {
-            get => path;
+            get => robotPath;
         }
         private string color;
         public string Color
@@ -29,7 +29,7 @@ namespace RicRobots {
         {
             this.steps = steps;
             this.color = color;
-            this.path = path;
+            this.robotPath = path;
             this.destination = destination;
         }
 
