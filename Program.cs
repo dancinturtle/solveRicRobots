@@ -51,7 +51,7 @@ namespace RicRobots
             };
             Board board = new Board(dimensions[0], dimensions[1], walls, robots);
             // MinHeap heap = board.twoRobots("yellow", new int[]{15,13});
-            Answer answer = board.play("green", new int[] {14, 2});
+            Answer answer = board.play("red", new int[] {10, 8});
             if(answer != null)
             {
                 if(answer.Helper != null){

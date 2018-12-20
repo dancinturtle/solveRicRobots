@@ -60,9 +60,14 @@ namespace RicRobots
                 Program.printTracker(solo, this, destinationNode);
                 targetTracker = solo;
             }
+            else
+            {
+                Console.WriteLine("no solo");
+            }
             Answer nudgeRobots = nudgeRobotsOneMovement(color, destination, maxSteps);
             if (nudgeRobots != null){
                 Console.WriteLine("got an answer by nudging");
+                Console.WriteLine(nudgeRobots.HelperColor + " " + nudgeRobots.HelperDestination.Name);
             }
             else
             {
@@ -86,55 +91,50 @@ namespace RicRobots
         public Answer nudgeRobotsOneMovement(string color, int[] destination, int maxSteps)
         {
             int[] robotLocation = this.robots[color];
+            Node destinationNode = this.matrix[destination[0], destination[1]];
             Answer bestAnswer = null;
             foreach(var kvp in this.robots)
             {
                 if(kvp.Key != color)
                 {
                     Node helperNode = this.matrix[kvp.Value[0], kvp.Value[1]];
-                    if(helperNode.Up != null)
+                    Dictionary<string, Node> neighbors = this.adjMap[helperNode];
+                    string[] directions = {"up", "right", "down", "left"};
+                    foreach(string direction in directions)
                     {
-                        Answer nudgedPathUp = this.nudge(helperNode.Up, kvp.Key, color, destination, maxSteps);
-                        if(nudgedPathUp != null)
+                        if(neighbors[direction] != null)
                         {
-                            bestAnswer = nudgedPathUp;
-                            maxSteps = nudgedPathUp.TotalSteps;
+                            Dictionary<string, int[]> adjustedRobots = new Dictionary<string, int[]>();
+                            foreach(var robotkvp in this.robots)
+                            {
+                                if(robotkvp.Key == kvp.Key)
+                                {
+                                    adjustedRobots[kvp.Key] = new int[] { neighbors[direction].Row, neighbors[direction].Column };
+                                }
+                                else
+                                {
+                                    adjustedRobots[robotkvp.Key] = new int[] {robotkvp.Value[0], robotkvp.Value[1]};
+                                }
+                            }
+                            Board newboard = new Board(this.x, this.y, this.walls, adjustedRobots);
+                            Node newDestinationNode = newboard.Matrix[destination[0], destination[1]];
+                            Dictionary<Node, Object[]> nudgedPath = newboard.oneRobotPath(color, destination, maxSteps);
+                            if(nudgedPath.ContainsKey(newDestinationNode))
+                            {
+                                Console.WriteLine($"nudged path found by nudging {kvp.Key} robot to {neighbors[direction].Name}");
+                                if((int) nudgedPath[newDestinationNode][0] < maxSteps)
+                                {
+                                    maxSteps = (int) nudgedPath[newDestinationNode][0];
+                                        Console.WriteLine($"And it's a shorter path too! {maxSteps} steps!");
+                                }
+                            } 
                         }
-                    }
-                    if(helperNode.Right != null)
-                    {
-                        Answer nudgedPathRight = this.nudge(helperNode.Right, kvp.Key, color, destination, maxSteps);
-                        if(nudgedPathRight != null)
-                        {
-                            bestAnswer = nudgedPathRight;
-                            maxSteps = nudgedPathRight.TotalSteps;
-                        }
-
-                    }
-                    if(helperNode.Down != null)
-                    {
-                        Answer nudgedPathDown = this.nudge(helperNode.Down, kvp.Key, color, destination, maxSteps);
-                        if(nudgedPathDown != null)
-                        {
-                            bestAnswer = nudgedPathDown;
-                            maxSteps = nudgedPathDown.TotalSteps;
-                        }
-
-                    }
-                    if(helperNode.Left != null)
-                    {
-                        Answer nudgedPathLeft = this.nudge(helperNode.Left, kvp.Key, color, destination, maxSteps);
-                        if(nudgedPathLeft != null)
-                        {
-                            bestAnswer = nudgedPathLeft;
-                            maxSteps = nudgedPathLeft.TotalSteps;
-                        }
-
                     }
                 }
             }
             return bestAnswer;
         }
+      
         public Answer nudge(Node node, string nudgeColor, string targetColor, int[] destination, int maxSteps)
         {
             Dictionary<string, int[]> nudgedRobot = new Dictionary<string, int[]>();
