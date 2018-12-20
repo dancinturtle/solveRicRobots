@@ -9,10 +9,10 @@ namespace RicRobots
         {
             int[] dimensions = {16, 16};
             Dictionary<string, int[]> robots = new Dictionary<string, int[]> {
-                {"green", new int[] {15, 6} },
-                {"red", new int[] {11, 6} },
-                {"blue", new int[] {10, 10} },
-                {"yellow", new int[] {11, 13} }
+                {"green", new int[] {1, 9} },
+                {"red", new int[] {4, 10} },
+                {"blue", new int[] {6, 5} },
+                {"yellow", new int[] {5, 0} }
             };
             Dictionary<int[], string[]> walls = new Dictionary<int[], string[]> {
                 { new int[] {0,4}, new string[] {"right"} },
@@ -51,12 +51,20 @@ namespace RicRobots
             };
             Board board = new Board(dimensions[0], dimensions[1], walls, robots);
             // MinHeap heap = board.twoRobots("yellow", new int[]{15,13});
-            board.twoRobots("yellow", new int[] {9, 1});
+            Answer answer = board.play("green", new int[] {14, 2});
+            if(answer != null)
+            {
+                if(answer.Helper != null){
+
+            printTracker(answer.HelperPath, board, answer.HelperDestination);
+                }
+
+            printTracker(answer.TargetRobotPath, answer.SecondBoard, answer.Destination);
+            }
 
         }
-        static string printTracker(Dictionary<Node, Object[]> tracker, Board board, int[] destination)
+        public static string printTracker(Dictionary<Node, Object[]> tracker, Board board, Node destinationNode)
         {
-            Node destinationNode = board.Matrix[destination[0], destination[1]];
             string result = "";
             if(tracker.ContainsKey(destinationNode))
             {

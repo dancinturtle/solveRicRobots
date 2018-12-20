@@ -10,20 +10,26 @@ namespace RicRobots {
             get => steps;
             set => steps = value;
         }
+        private Dictionary<Node, Object[]> path;
+        public Dictionary<Node, Object[]> Path
+        {
+            get => path;
+        }
         private string color;
         public string Color
         {
             get => color;
         }
-        int[] destination {get; set;}
+        private int[] destination;
         public int[] Destination
         {
             get => destination;
         }
-        public RobotPriority(int steps, string color, int[] destination)
+        public RobotPriority(int steps, string color, int[] destination, Dictionary<Node, Object[]> path)
         {
             this.steps = steps;
             this.color = color;
+            this.path = path;
             this.destination = destination;
         }
 
