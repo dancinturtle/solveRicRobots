@@ -18,7 +18,7 @@ namespace RicRobots
         {
             this.data = new List<RobotPriority>();
         }
-        public void insert(int steps, string color, int[] destination, Dictionary<Node, Object[]> path)
+        public void insert(int steps, string color, int[] destination, Dictionary<string, Object[]> path)
         {
             RobotPriority newPri = new RobotPriority(steps, color, destination, path);
             this.data.Add(newPri);

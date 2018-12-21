@@ -45,6 +45,51 @@ namespace RicRobots
             this.placeRobots();
             this.makeMap();
         }
+        public static List<string[]> permutations(int maxSteps){
+            string[] colors = {"red", "green", "blue", "yellow"};
+            List<string[]> allPermutations = new List<string[]>();
+            foreach(string color in colors)
+            {
+                allPermutations.Add(new string[]{color});
+            }
+            int count = 2;
+            int leftBounds = 0;
+            int rightBounds = 3;
+            while(count < maxSteps)
+            {
+                for(int i=leftBounds; i<= rightBounds; i++)
+                {
+                    foreach(string color in colors)
+                    {
+                        string[] newPermutation = new string[count];
+                        int j=0;
+                        while(j < allPermutations[i].Length)
+                        {
+                            newPermutation[j] = allPermutations[i][j];
+                            j++;
+                        }
+                        newPermutation[j] = color;
+                        allPermutations.Add(newPermutation);
+                    }
+                }
+                count++;
+                leftBounds = rightBounds + 1;
+                rightBounds = allPermutations.Count - 1;
+            }
+            return allPermutations;
+        }
+        public static void printPermutations(List<string[]> p)
+        {
+            foreach(string[] permutation in p)
+            {
+                string printPerm = "";
+                foreach(string color in permutation)
+                {
+                    printPerm += color + ", ";
+                }
+                Console.WriteLine(printPerm);
+            }
+        }
 
         public Answer play(string color, int[] destination)
         {
@@ -53,14 +98,11 @@ namespace RicRobots
             int maxSteps = int.MaxValue;
             Answer bestAnswer = null;
             Answer solo = this.oneRobotPath(color, destination);
-            Dictionary<Node, Object[]> targetTracker = null;
             if (solo != null)
             {
                 bestAnswer = solo;
                 maxSteps = solo.TotalSteps;
                 Console.WriteLine($"solo in {maxSteps} steps.");
-                Program.printTracker(solo.Trackers.Peek(), this, destinationNode);
-                targetTracker = solo.Trackers.Peek();
             }
             else
             {
@@ -78,7 +120,6 @@ namespace RicRobots
             {
                 Console.WriteLine("no answer by nudging");
             }
-            // Answer twoRobotPlay = this.twoRobots(color, destination, maxSteps);
             Answer twoRobotAnswer = this.twoRobots(color, destination, maxSteps);
             if(twoRobotAnswer != null)
             {
@@ -88,20 +129,141 @@ namespace RicRobots
                     bestAnswer = twoRobotAnswer;
                 }
             }
+            // permutations, setting up for brute forcing rest of the answers, only do this if a path has already been found so that there is an upper boundary. remains to be seen what we'll do if we don't have an upper boundary.
+            if(maxSteps < int.MaxValue)
+            {
+                List<string[]> allperms = permutations(maxSteps);
+                Console.WriteLine("3 combos");
+                // printPermutations(allperms);
+                Answer permAnswer = this.bruteForcing(allperms, color, destination, maxSteps);
+                if(permAnswer != null)
+                {
+                    Console.WriteLine("got a permanswer");
+                    Console.WriteLine(permAnswer.TotalSteps);
+                    if(permAnswer.TotalSteps < maxSteps)
+                    {
+                        bestAnswer = permAnswer;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("no perm answer");
+                }
+            }
             return bestAnswer;
-            // if (twoRobotPlay == null)
-            // {
-            //     if (maxSteps < int.MaxValue)
-            //     {
-            //         Console.WriteLine("doing it solo");
-            //         // Answer soloAnswer = new Answer(null, null, null, color, targetRobot, destinationNode, null, solo, maxSteps, 0, this, maxSteps);
-            //         // return soloAnswer;
-            //     }
-            //     Console.WriteLine("unsolvable");
-            //     return null;
+        }
 
-            // }
-            // return twoRobotPlay;
+        public Answer bruteForcing(List<string[]> permutations, string color, int[] destination, int maxSteps)
+        {
+            Console.WriteLine("maxSteps allowed " + maxSteps);
+            Answer answer = null;
+            foreach(string[] perm in permutations)
+            {
+                Answer recAns = this.recursivePerm(perm, 0, maxSteps, color, destination);
+                if(recAns != null)
+                {
+                    Console.WriteLine("Got an answer with " + recAns.TotalSteps + " steps");
+                    if(recAns.TotalSteps < maxSteps)
+                    {
+                        maxSteps = recAns.TotalSteps;
+                        answer = recAns;
+                    }
+                }
+            }
+            return answer;
+        }
+       
+
+        public Answer recursivePerm(string[] permutation, int position, int maxSteps, string color, int[] destination,List<string> previousRobots = null, List<int[]> previousDestinations = null, List<Dictionary<string, Object[]>> previousTrackers = null, Answer best = null)
+        {
+            if(permutation.Length >= maxSteps)
+            {
+                return best;
+            }
+            string[] directions = {"up", "right", "down", "left"};
+            string movingRobot = permutation[position];
+            int[] movingRobotLocation = this.robots[movingRobot];
+            Node movingRobotNode = this.matrix[movingRobotLocation[0], movingRobotLocation[1]];
+            foreach(string direction in directions)
+            {
+                if(this.adjMap[movingRobotNode][direction] != null)
+                {
+                    Node tempDestination = this.adjMap[movingRobotNode][direction];
+                    // make a new board with new robot positions. Call THAT board's recursivePerm.
+                    Dictionary<string, int[]> adjustedRobots = new Dictionary<string, int[]>();
+                    foreach(var kvp in this.robots)
+                    {   
+                        if(kvp.Key == movingRobot)
+                        {
+                            adjustedRobots.Add(movingRobot, new int[] {tempDestination.Row, tempDestination.Column});
+                        }
+                        else
+                        {
+                            adjustedRobots.Add(kvp.Key, new int[] {kvp.Value[0], kvp.Value[1]});
+                        }
+                    }
+                    Board newBoard = new Board(this.x, this.y, this.walls, adjustedRobots);
+                    List<string> copyPreviousRobots;
+                    if(previousRobots == null)
+                    {
+                        copyPreviousRobots = new List<string>();
+                    }
+                    else
+                    {
+                        copyPreviousRobots = new List<string>(previousRobots);
+                    }
+                    copyPreviousRobots.Add(movingRobot);
+                    List<int[]> copyPreviousDestinations;
+                    if(previousDestinations == null)
+                    {
+                        copyPreviousDestinations = new List<int[]>();
+                    }
+                    else
+                    {
+                        copyPreviousDestinations = new List<int[]>(previousDestinations);
+                    }
+                    copyPreviousDestinations.Add(new int[]{ tempDestination.Row, tempDestination.Column });
+                    List<Dictionary<string, Object[]>> copyPreviousTrackers;
+                    if(previousTrackers == null)
+                    {
+                        copyPreviousTrackers = new List<Dictionary<string, Object[]>>();
+                    }
+                    else
+                    {
+                        copyPreviousTrackers = new List<Dictionary<string, Object[]>>(previousTrackers);
+                    }
+                    Dictionary<string, Object[]> currentTracker = new Dictionary<string, Object[]>();
+                    currentTracker.Add( movingRobotNode.Name, new Object[] {0, null} );
+                    currentTracker.Add( tempDestination.Name, new Object[] {1, movingRobotNode} );
+                    copyPreviousTrackers.Add(currentTracker);
+                    if(position < permutation.Length - 1)
+                    {
+                        Answer newBest = newBoard.recursivePerm(permutation, position + 1, maxSteps, color, destination, copyPreviousRobots, copyPreviousDestinations, copyPreviousTrackers, best);
+                        if(newBest != null)
+                        {
+                            best = newBest;
+                            maxSteps = newBest.TotalSteps;
+                        }
+                    }
+                    else 
+                    {
+                        Answer targetPath = newBoard.oneRobotPath(color, destination, maxSteps);
+                        if(targetPath != null && targetPath.TotalSteps + permutation.Length < maxSteps)
+                        {
+                            // make the final answer, which means we need the trackers for all the robots before.
+                            Answer shortestFound = new Answer(copyPreviousRobots[0], 1, copyPreviousDestinations[0], copyPreviousTrackers[0]);
+                            for(int m=1; m<copyPreviousRobots.Count; m++)
+                            {
+                                shortestFound.addRobot(copyPreviousRobots[m], 1, copyPreviousDestinations[m], copyPreviousTrackers[m]);
+                            }
+                            shortestFound.addRobot(color, targetPath.TotalSteps, destination, targetPath.Trackers.Peek());
+                            best = shortestFound;
+                            maxSteps = shortestFound.TotalSteps;
+                        }
+                    }
+                }
+            }
+            return best;
         }
         public Answer nudgeRobotsOneMovement(string color, int[] destination, int maxSteps)
         {
@@ -145,9 +307,9 @@ namespace RicRobots
                                     maxSteps = nudgedPath.TotalSteps + 1;
                                     Console.WriteLine($"And it's a shorter path too! {maxSteps} steps!");
                                     // to make an answer, we need to produce a tracker for our nudged robot.
-                                    Dictionary<Node, Object[]> nudgedRobotTracker = new Dictionary<Node, Object[]>();
-                                    nudgedRobotTracker[helperNode] = new Object[] { 0, null};
-                                    nudgedRobotTracker[targetNeighbor] = new Object[] {1, helperNode};
+                                    Dictionary<string, Object[]> nudgedRobotTracker = new Dictionary<string, Object[]>();
+                                    nudgedRobotTracker[helperNode.Name] = new Object[] { 0, null};
+                                    nudgedRobotTracker[targetNeighbor.Name] = new Object[] {1, helperNode};
                                     // now we can start making an answer
                                     Answer nudgeAnswer = new Answer(kvp.Key, 1, new int[] {targetNeighbor.Row, targetNeighbor.Column}, nudgedRobotTracker);
                                     nudgeAnswer.addRobot(color, maxSteps-1, destination, nudgedPath.Trackers.Peek());
@@ -228,7 +390,6 @@ namespace RicRobots
             Board secondaryBoard = this;
             Node secondaryDestination = destinationNode;
             
-            Dictionary<Node, Object[]> bestTargetRobotPath = new Dictionary<Node, Object[]>();
             while (heap.Count > 0)
             {
                 // pull off the heap to find a robot's path to a secondary destination
@@ -269,14 +430,11 @@ namespace RicRobots
             }
             if (twoRobotAnswer == null)
             {
-                Console.WriteLine("null on 259");
+                Console.WriteLine("null on 305");
                 return null;
             }
-
-            // Console.WriteLine($"Line 136, helped by {helperColor} to {helperDestination[0]}-{helperDestination[1]} in {helperStepCount}, the shortest path is {maxSteps}.");
             return twoRobotAnswer;
-            // Answer answer = new Answer(helperColor, helperRobot, helperDestinationNode, color, targetRobot, secondaryDestination, bestHelper.Path, bestTargetRobotPath, maxSteps, helperStepCount, secondaryBoard, maxSteps - helperStepCount);
-            // return answer;
+            
         }
 
         // tracker is {destination node: [int steps, previous node]}
@@ -289,15 +447,15 @@ namespace RicRobots
             {
                 throw new System.ArgumentException("Origin node must be occupied by a robot", "origin");
             }
-            Dictionary<Node, Object[]> tracker = new Dictionary<Node, Object[]> {
-               {originRobot, new Object[] {0, null}}
+            Dictionary<string, Object[]> tracker = new Dictionary<string, Object[]> {
+               {originRobot.Name, new Object[] {0, null}}
            };
             Queue queue = new Queue();
             queue.insert(originRobot);
             while (queue.Head != null)
             {
                 QueueNode current = queue.dequeue();
-                if(maxSteps > 0 && (int)tracker[current.Val][0] >= maxSteps)
+                if(maxSteps > 0 && (int)tracker[current.Val.Name][0] >= maxSteps)
                 {
                     continue;
                 }
@@ -339,10 +497,10 @@ namespace RicRobots
                                 break;
                         }
                     }
-                    if (nextStop != null && !tracker.ContainsKey(nextStop))
+                    if (nextStop != null && !tracker.ContainsKey(nextStop.Name))
                     {
-                        int steps = (int)tracker[current.Val][0] + 1;
-                        tracker.Add(nextStop, new Object[] { steps, current.Val });
+                        int steps = (int)tracker[current.Val.Name][0] + 1;
+                        tracker.Add(nextStop.Name, new Object[] { steps, current.Val });
                         if (nextStop == destinationNode)
                         {
                             Answer oneRobotAnswer = new Answer(color, steps, destination, tracker);

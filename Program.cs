@@ -9,10 +9,10 @@ namespace RicRobots
         {
             int[] dimensions = {16, 16};
             Dictionary<string, int[]> robots = new Dictionary<string, int[]> {
-                {"green", new int[] {1, 9} },
-                {"red", new int[] {4, 10} },
-                {"blue", new int[] {6, 5} },
-                {"yellow", new int[] {5, 0} }
+                {"green", new int[] {4, 13} },
+                {"red", new int[] {9, 13} },
+                {"blue", new int[] {1,4} },
+                {"yellow", new int[] {7, 14} }
             };
             Dictionary<int[], string[]> walls = new Dictionary<int[], string[]> {
                 { new int[] {0,4}, new string[] {"right"} },
@@ -50,96 +50,19 @@ namespace RicRobots
                 { new int[] {15,11}, new string[] {"right"} }
             };
             Board board = new Board(dimensions[0], dimensions[1], walls, robots);
-            // MinHeap heap = board.twoRobots("yellow", new int[]{15,13});
-            // Answer answer = board.play("red", new int[] {10, 8});
-            Answer answer = board.play("green", new int[] {11, 13});
+            Answer answer = board.play("yellow", new int[] {8, 10});
             if(answer != null)
             {
-                Console.WriteLine("Got an answer " + answer.TotalSteps);
-                while(answer.RobotColors.Count > 0)
-                {
-                    Console.WriteLine("Move robot " + answer.RobotColors.Dequeue());
-                    int[] destination = answer.RobotDestinations.Dequeue();
-                    printTracker(answer.Trackers.Dequeue(), board, board.Matrix[destination[0], destination[1]]);
-                }
+                answer.printAnswer();
             }
             else 
             {
                 Console.WriteLine("Hahahahah");
             }
-            // if(answer != null)
-            // {
-            //     if(answer.Helper != null){
-
-            // printTracker(answer.HelperPath, board, answer.HelperDestination);
-            //     }
-
-            // printTracker(answer.TargetRobotPath, answer.SecondBoard, answer.Destination);
-            // }
+           
 
         }
-        public static string printTracker(Dictionary<Node, Object[]> tracker, Board board, Node destinationNode)
-        {
-            string result = "";
-            if(tracker.ContainsKey(destinationNode))
-            {
-                int stepsRequired = (int) tracker[destinationNode][0];
-                result +=$"Destination {destinationNode.Name} found in {stepsRequired} steps. \n";
-                
-                string[] pathNodes = new string[stepsRequired + 1];
-                for(int i=stepsRequired; i>=0; i--)
-                {   
-                    pathNodes[i] = destinationNode.Name;
-                    Node viaNode = (Node) tracker[destinationNode][1];
-                    destinationNode = viaNode;
-                }
-                foreach (string viaNodeName in pathNodes)
-                {
-                    result += $"{viaNodeName} -> ";
-                }
-                result += "end \n";
-                Console.WriteLine(result);
-                return result;
-            }
-            result += $"Destination {destinationNode.Name} could not be reached. \n";
-            foreach(var kvp in tracker)
-            {
-                result += kvp.Key.Name + " : ";
-                result += kvp.Value[0].ToString() + " steps through ";
-                if(kvp.Value[1] != null)
-                {
-                    Node via = (Node)kvp.Value[1];
-                    result += via.Name;
-                }
-                else
-                {
-
-                    result += "none";
-                }
-                result += "\n";
-            }
-            Console.WriteLine(result);
-            return result;
-        }
-        static string printNeighbors(Board board, int y, int x)
-        {
-            Node node = board.Matrix[y, x];
-            string result = "Neighbors of " + node.Name + ": ";
-            foreach(var kvp in board.adjMap[node])
-            {
-                result += kvp.Key + " ";
-                if(kvp.Value != null)
-                {
-                    result += kvp.Value.Name + ", ";
-                }
-                else
-                {
-                    result += "null, ";
-                }
-            }
-            Console.WriteLine(result);
-            return result;
-        }
+       
         static string printAdjMap(Board board)
         {
             string result = "";
