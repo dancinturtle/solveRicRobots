@@ -130,10 +130,11 @@ namespace RicRobots
                 }
             }
             // permutations, setting up for brute forcing rest of the answers, only do this if a path has already been found so that there is an upper boundary. remains to be seen what we'll do if we don't have an upper boundary.
-            if(maxSteps < int.MaxValue)
-            {
-                List<string[]> allperms = permutations(maxSteps);
-                Console.WriteLine("3 combos");
+            // For now set upper boundary to 5
+            // if(maxSteps < int.MaxValue)
+            // {
+                List<string[]> allperms = permutations(5);
+                // Console.WriteLine("3 combos");
                 // printPermutations(allperms);
                 Answer permAnswer = this.bruteForcing(allperms, color, destination, maxSteps);
                 if(permAnswer != null)
@@ -149,7 +150,7 @@ namespace RicRobots
                 {
                     Console.WriteLine("no perm answer");
                 }
-            }
+            // }
             return bestAnswer;
         }
 
