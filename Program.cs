@@ -79,14 +79,14 @@ namespace RicRobots
         {
             int[] dimensions = {16, 16};
             Dictionary<string, int[]> robots = new Dictionary<string, int[]> {
-                {"green", new int[] {10, 1} },
-                {"red", new int[] {13, 12} },
-                {"blue", new int[] {11, 8} },
-                {"yellow", new int[] {4, 4} }
+                {"green", new int[] {15, 1 }},
+                {"red", new int[] {7, 0} },
+                {"blue", new int[] {15, 6} },
+                {"yellow", new int[] {12, 15} }
             };
             Dictionary<int[], string[]> walls = bdayBoard;
             Board board = new Board(dimensions[0], dimensions[1], walls, robots);
-            Answer answer = board.play("green", new int[] {4, 5});
+            Answer answer = board.play("red", new int[] {5, 2});
             if(answer != null)
             {
                 answer.printAnswer();

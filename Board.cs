@@ -133,7 +133,7 @@ namespace RicRobots
             // For now set upper boundary to 5
             // if(maxSteps < int.MaxValue)
             // {
-                List<string[]> allperms = permutations(5);
+                List<string[]> allperms = permutations(6);
                 // Console.WriteLine("3 combos");
                 // printPermutations(allperms);
                 Answer permAnswer = this.bruteForcing(allperms, color, destination, maxSteps);
