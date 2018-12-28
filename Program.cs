@@ -40,6 +40,39 @@ namespace RicRobots
             { new int[] {15,5}, new string[] {"right"} },
             { new int[] {15,11}, new string[] {"right"} }
         };
+        static public Dictionary<int[], string[]> dec27 = new Dictionary<int[], string[]> {
+            { new int[] {0,3}, new string[] {"right"} },
+            { new int[] {0,9}, new string[] {"right"} },
+            { new int[] {1,1}, new string[] {"left", "down"} },
+            { new int[] {1,13}, new string[] {"up", "right"} },
+            { new int[] {2,6}, new string[] {"up", "right"} },
+            { new int[] {3,9}, new string[] {"up", "left"} },
+            { new int[] {4,2}, new string[] {"right", "down"} },
+            { new int[] {4,15}, new string[] {"down"} },
+            { new int[] {5,0}, new string[] {"down"} },
+            { new int[] {5,7}, new string[] {"left", "up"} },
+            { new int[] {6,7}, new string[] {"down"} },
+            { new int[] {6,8}, new string[] {"down"} },
+            { new int[] {6,10}, new string[] {"right", "down"} },
+            { new int[] {6,14}, new string[] {"left", "down"} },
+            { new int[] {7,6}, new string[] {"right"} },
+            { new int[] {7,9}, new string[] {"left"} },
+            { new int[] {8,6}, new string[] {"right"} },
+            { new int[] {8,9}, new string[] {"left"} },
+            { new int[] {9,4}, new string[] {"left", "down"} },
+            { new int[] {9,15}, new string[] {"up"} },
+            { new int[] {10,1}, new string[] {"up", "right"} },
+            { new int[] {10,8}, new string[] {"left", "up"} },
+            { new int[] {10,13}, new string[] {"left", "up"} },
+            { new int[] {11,0}, new string[] {"down"} },
+            { new int[] {11,10}, new string[] {"down", "right"} },
+            { new int[] {12,14}, new string[] {"left", "down"} },
+            { new int[] {13,6}, new string[] {"up", "left"} },
+            { new int[] {14,2}, new string[] {"down", "right"} },
+            { new int[] {14,9}, new string[] {"up", "right"} },
+            { new int[] {15,3}, new string[] {"right"} },
+            { new int[] {15,11}, new string[] {"right"} }
+        };
         static public Dictionary<int[], string[]> bdayBoard = new Dictionary<int[], string[]> {
             { new int[] {0,3}, new string[] {"right"} },
             { new int[] {0,8}, new string[] {"right"} },
@@ -79,14 +112,14 @@ namespace RicRobots
         {
             int[] dimensions = {16, 16};
             Dictionary<string, int[]> robots = new Dictionary<string, int[]> {
-                {"green", new int[] {15, 1 }},
-                {"red", new int[] {7, 0} },
-                {"blue", new int[] {15, 6} },
-                {"yellow", new int[] {12, 15} }
+                {"green", new int[] {12, 9 }},
+                {"red", new int[] {3, 14} },
+                {"blue", new int[] {4, 5} },
+                {"yellow", new int[] {2, 2} }
             };
-            Dictionary<int[], string[]> walls = bdayBoard;
+            Dictionary<int[], string[]> walls = dec27;
             Board board = new Board(dimensions[0], dimensions[1], walls, robots);
-            Answer answer = board.play("red", new int[] {5, 2});
+            Answer answer = board.play("blue", new int[] {14, 9});
             if(answer != null)
             {
                 answer.printAnswer();
