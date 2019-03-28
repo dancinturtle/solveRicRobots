@@ -57,7 +57,7 @@ namespace RicRobots
             int rightBounds = 3;
             while(count < maxSteps)
             {
-                for(int i=leftBounds; i<= rightBounds; i++)
+                for(int i=leftBounds; i<=rightBounds; i++)
                 {
                     foreach(string color in colors)
                     {
@@ -175,10 +175,12 @@ namespace RicRobots
         }
        
 
-        public Answer recursivePerm(string[] permutation, int position, int maxSteps, string color, int[] destination,List<string> previousRobots = null, List<int[]> previousDestinations = null, List<Dictionary<string, Object[]>> previousTrackers = null, Answer best = null)
+        public Answer recursivePerm(string[] permutation, int position, int maxSteps, string color, int[] destination, List<string> previousRobots = null, List<int[]> previousDestinations = null, List<Dictionary<string, Object[]>> previousTrackers = null, Answer best = null)
         {
+            // need to make a dictionary that will store the boads already made and continue to build off of them.
             if(permutation.Length >= maxSteps)
             {
+                Console.WriteLine("this perm is too long");
                 return best;
             }
             string[] directions = {"up", "right", "down", "left"};

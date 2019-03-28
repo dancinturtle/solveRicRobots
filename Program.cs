@@ -108,18 +108,19 @@ namespace RicRobots
             { new int[] {15,5}, new string[] {"right"} },
             { new int[] {15,9}, new string[] {"right"} }
         };
+         
         static void Main(string[] args)
         {
             int[] dimensions = {16, 16};
             Dictionary<string, int[]> robots = new Dictionary<string, int[]> {
-                {"green", new int[] {12, 9 }},
-                {"red", new int[] {3, 14} },
-                {"blue", new int[] {4, 5} },
-                {"yellow", new int[] {2, 2} }
+                {"green", new int[] {3, 14}},
+                {"red", new int[] {1, 11} },
+                {"blue", new int[] {2, 11} },
+                {"yellow", new int[] {6, 12} }
             };
-            Dictionary<int[], string[]> walls = dec27;
+            Dictionary<int[], string[]> walls = bdayBoard;
             Board board = new Board(dimensions[0], dimensions[1], walls, robots);
-            Answer answer = board.play("blue", new int[] {14, 9});
+            Answer answer = board.play("red", new int[] {5, 2});
             if(answer != null)
             {
                 answer.printAnswer();
